@@ -12,6 +12,9 @@
   targetPort = 3000
   port = 8888
 
+[functions]
+  directory = "netlify/functions"
+
 [[headers]]
   for = "/_next/static/*"
   [headers.values]

@@ -101,26 +101,28 @@ export function WeddingInvitation() {
     setRsvpError("");
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const body = new URLSearchParams();
-    formData.forEach((value, key) => body.append(key, String(value)));
+    const payload = Object.fromEntries(Array.from(formData.entries(), ([key, value]) => [key, String(value)]));
 
     try {
       const isLocalPreview = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
       if (!isLocalPreview) {
-        const response = await fetch("/", {
+        const response = await fetch("/api/rsvp", {
           method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: body.toString(),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
         });
-        if (!response.ok) throw new Error("Submission failed");
+        if (!response.ok) {
+          const result = await response.json().catch(() => null) as { error?: string } | null;
+          throw new Error(result?.error ?? "Submission failed");
+        }
       }
       window.localStorage.setItem(RSVP_STORAGE_KEY, "true");
       setRsvpComplete(true);
       setLoaderOpened(false);
       setLoaderLeaving(false);
       setLoaderVisible(true);
-    } catch {
-      setRsvpError("We could not save your response. Check your connection and try again.");
+    } catch (error) {
+      setRsvpError(error instanceof Error ? error.message : "We could not save your response. Check your connection and try again.");
     } finally {
       setRsvpSubmitting(false);
     }
