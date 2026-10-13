@@ -29,6 +29,8 @@ export function WeddingInvitation() {
   const [countdown, setCountdown] = useState(getCountdown);
   const [rsvpReady, setRsvpReady] = useState(false);
   const [rsvpComplete, setRsvpComplete] = useState(false);
+  const [additionalRsvp, setAdditionalRsvp] = useState(false);
+  const [rsvpNotice, setRsvpNotice] = useState("");
   const [attendance, setAttendance] = useState<"yes" | "no">("yes");
   const [rsvpSubmitting, setRsvpSubmitting] = useState(false);
   const [rsvpError, setRsvpError] = useState("");
@@ -48,6 +50,11 @@ export function WeddingInvitation() {
     }, 0);
     return () => window.clearTimeout(readyTimer);
   }, []);
+  useEffect(() => {
+    if (!rsvpNotice) return;
+    const noticeTimer = window.setTimeout(() => setRsvpNotice(""), 4_500);
+    return () => window.clearTimeout(noticeTimer);
+  }, [rsvpNotice]);
   useEffect(() => {
     if (!loaderVisible) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -118,9 +125,14 @@ export function WeddingInvitation() {
       }
       window.localStorage.setItem(RSVP_STORAGE_KEY, "true");
       setRsvpComplete(true);
-      setLoaderOpened(false);
-      setLoaderLeaving(false);
-      setLoaderVisible(true);
+      if (additionalRsvp) {
+        setAdditionalRsvp(false);
+        setRsvpNotice("The additional seat has been reserved.");
+      } else {
+        setLoaderOpened(false);
+        setLoaderLeaving(false);
+        setLoaderVisible(true);
+      }
     } catch (error) {
       setRsvpError(error instanceof Error ? error.message : "We could not save your response. Check your connection and try again.");
     } finally {
@@ -128,14 +140,29 @@ export function WeddingInvitation() {
     }
   };
 
+  const openAdditionalRsvp = () => {
+    setAttendance("yes");
+    setRsvpError("");
+    setRsvpNotice("");
+    setAdditionalRsvp(true);
+    setRsvpComplete(false);
+  };
+
+  const closeAdditionalRsvp = () => {
+    setAdditionalRsvp(false);
+    setRsvpError("");
+    setRsvpComplete(true);
+  };
+
   return (
     <main>
       {!rsvpComplete ? <section className={`rsvp-gate${rsvpReady ? " is-ready" : ""}`} aria-labelledby="rsvp-title">
+        {additionalRsvp ? <button className="rsvp-close" type="button" onClick={closeAdditionalRsvp} aria-label="Return to the invitation"><X size={21} weight="thin" /><span>Back to invitation</span></button> : null}
         <div className="rsvp-ornament" aria-hidden="true"><span /><i>K</i><b>&</b><i>M</i><span /></div>
         <div className="rsvp-intro">
-          <p className="rsvp-kicker">A private invitation</p>
-          <h1 id="rsvp-title">You&apos;re invited<br /><em>to celebrate love.</em></h1>
-          <p className="rsvp-message">Kayitare and Maranatha joyfully invite you to share in the beginning of their forever.</p>
+          <p className="rsvp-kicker">{additionalRsvp ? "Welcome another guest" : "A private invitation"}</p>
+          <h1 id="rsvp-title">{additionalRsvp ? <>Reserve<br /><em>another seat.</em></> : <>You&apos;re invited<br /><em>to celebrate love.</em></>}</h1>
+          <p className="rsvp-message">{additionalRsvp ? "Enter the guest’s details below and we’ll add their response to the family’s list." : "Kayitare and Maranatha joyfully invite you to share in the beginning of their forever."}</p>
           <div className="rsvp-date"><span>Saturday</span><strong>30</strong><span>January<br />2027 · Kigali</span></div>
           <p className="rsvp-script">Together with our families</p>
         </div>
@@ -143,7 +170,7 @@ export function WeddingInvitation() {
           <form className="rsvp-panel" name="wedding-rsvp" method="POST" data-netlify="true" netlify-honeypot="company" onSubmit={handleRsvpSubmit}>
             <input type="hidden" name="form-name" value="wedding-rsvp" />
             <p className="rsvp-honeypot" aria-hidden="true"><label>Leave this field empty<input name="company" tabIndex={-1} autoComplete="off" /></label></p>
-            <header><span>Kindly respond</span><h2>Will you join us?</h2><p>Your response helps our families prepare a beautiful welcome for every guest.</p></header>
+            <header><span>{additionalRsvp ? "New guest response" : "Kindly respond"}</span><h2>{additionalRsvp ? "Who shall we welcome?" : "Will you join us?"}</h2><p>{additionalRsvp ? "Use the new guest’s name and phone number so their reservation remains easy to manage." : "Your response helps our families prepare a beautiful welcome for every guest."}</p></header>
             <div className="rsvp-fields">
               <label className="rsvp-field"><span>Your full name</span><input name="fullName" type="text" autoComplete="name" placeholder="e.g. Aline Uwase" required /></label>
               <label className="rsvp-field"><span>Phone number</span><input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+250 7XX XXX XXX" required /></label>
@@ -159,6 +186,8 @@ export function WeddingInvitation() {
           </form>
         </div>
       </section> : null}
+      {rsvpComplete && !loaderVisible ? <button className="reserve-another" type="button" onClick={openAdditionalRsvp}><UsersThree size={19} weight="thin" /><span>Reserve another seat</span><ArrowRight size={16} weight="thin" /></button> : null}
+      {rsvpNotice ? <div className="rsvp-notice" role="status"><Check size={18} weight="bold" /><span>{rsvpNotice}</span></div> : null}
       {loaderVisible ? <div className={`wedding-loader${loaderOpened ? " is-open" : ""}${loaderLeaving ? " is-leaving" : ""}`} role="status" aria-live="polite" aria-label="Opening Kayitare and Maranatha's wedding invitation">
         <div className="loader-scene" aria-hidden="true"><div className="stage-light" /><div className="presentation-box"><div className="box-base"><div className="box-card"><span>Together with their families</span><h2>Kayitare <i>&</i> Maranatha</h2><p>Saturday · 30 January · 2027</p><small>Kigali, Rwanda</small></div></div><div className="box-lid"><span>K<i>/</i>M</span><small>A celebration of love</small></div></div></div>
         <div className="loader-curtain left" aria-hidden="true" /><div className="loader-curtain right" aria-hidden="true" />
