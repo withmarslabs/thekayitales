@@ -1,0 +1,23 @@
+[build]
+  command = "bun install --frozen-lockfile && bun run build"
+  publish = "out"
+
+[build.environment]
+  NODE_VERSION = "22.12.0"
+  BUN_VERSION = "1.4.2"
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+
+[dev]
+  command = "bun run dev"
+  targetPort = 3000
+  port = 8888
+
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
