@@ -4,13 +4,13 @@ The public RSVP form sends validated submissions to a Netlify Function at `/api/
 
 ## Airtable resources
 
-- Base: `Kayitare & Maranatha Wedding`
-- Base ID: `apphwhrze9XfqmJSG`
-- Table: `RSVP Responses`
-- Table ID: `tblEjBgMb7zr1FRnT`
-- Admin interface: [Wedding RSVP Admin](https://airtable.com/apphwhrze9XfqmJSG/pagbHjLSdfBbBlnpL)
+- Base: `Wedding Reservations`
+- Base ID: `appRN9fznyqtKQJjY`
+- Table: `Wedding RSVPs`
+- Table ID: `tblteSLT5C4H2m8wl`
+- Admin view: [Wedding RSVPs](https://airtable.com/appRN9fznyqtKQJjY/tblteSLT5C4H2m8wl/viwc1r4R2cjk8tMPF?blocks=show)
 
-The admin interface uses Airtable authentication, including Google sign-in when it is enabled on the Airtable account. It contains the guest name, phone number, attendance status, guest count, submission time, and source. It can be filtered by attendance and totals the guest count.
+The admin view uses Airtable authentication, including Google sign-in when it is enabled on the Airtable account. It contains the guest name, phone number, party size, RSVP status, submission time, notification state, notes, and submission source. It can be filtered by status and totals the guest count.
 
 ## Netlify environment variable
 
@@ -26,9 +26,7 @@ The variable must be available to Functions. Redeploy after adding it.
 
 Create or enable an Airtable automation with:
 
-1. Trigger: **When record created** in `RSVP Responses`.
-2. Action: **Send email** to the wedding administrator.
+1. Trigger: **When record created** in `Wedding RSVPs`.
+2. Action: **Send email** to `marscompanyltd2025@gmail.com`.
 3. Subject: `New wedding RSVP — {Guest Name}`.
-4. Include `{Attendance}`, `{Guest Count}`, `{Phone}`, and `{Submitted At}` in the message.
-
-The email address is intentionally not stored in the public repository.
+4. Include `{RSVP Status}`, `{Number of Guests in Party}`, `{Phone Number}`, and `{RSVP Submission Time}` in the message.

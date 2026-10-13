@@ -1,8 +1,8 @@
 import type { Config } from "@netlify/functions";
 import Airtable from "airtable";
 
-const BASE_ID = "apphwhrze9XfqmJSG";
-const TABLE_ID = "tblEjBgMb7zr1FRnT";
+const BASE_ID = "appRN9fznyqtKQJjY";
+const TABLE_ID = "tblteSLT5C4H2m8wl";
 const ALLOWED_ATTENDANCE = new Set(["Attending", "Not attending"]);
 
 type RsvpPayload = {
@@ -63,11 +63,9 @@ const handler = async (request: Request) => {
       {
         fields: {
           "Guest Name": fullName,
-          Phone: phone,
-          Attendance: attendance,
-          "Guest Count": guestCount,
-          "Submitted At": new Date().toISOString(),
-          Source: "Wedding website",
+          "Phone Number": phone,
+          "Number of Guests in Party": guestCount,
+          "RSVP Status": attendance === "Attending" ? "Accepted" : "Declined",
         },
       },
     ], { typecast: false });
