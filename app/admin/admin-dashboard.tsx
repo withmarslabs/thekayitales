@@ -85,7 +85,7 @@ export function AdminDashboard({ clientId }: { clientId: string }) {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/admin/rsvps", {
+      const response = await fetch("/.netlify/functions/admin-rsvps", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json() as { admin?: Admin; records?: Guest[]; error?: string };
@@ -161,7 +161,7 @@ export function AdminDashboard({ clientId }: { clientId: string }) {
     setSaving(true);
     setError("");
     try {
-      const response = await fetch("/api/admin/rsvps", {
+      const response = await fetch("/.netlify/functions/admin-rsvps", {
         method: "PATCH",
         headers: { Authorization: `Bearer ${credential}`, "Content-Type": "application/json" },
         body: JSON.stringify({ id: selected.id, status: draftStatus, notes: draftNotes }),

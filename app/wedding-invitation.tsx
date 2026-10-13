@@ -111,7 +111,7 @@ export function WeddingInvitation() {
     const payload = Object.fromEntries(Array.from(formData.entries(), ([key, value]) => [key, String(value)]));
 
     try {
-      const response = await fetch("/api/rsvp", {
+      const response = await fetch("/.netlify/functions/rsvp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

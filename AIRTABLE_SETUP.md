@@ -1,6 +1,6 @@
 # Wedding RSVP administration
 
-The public RSVP form sends validated submissions to a Netlify Function at `/api/rsvp`. The function stores each response in the private Airtable base instead of exposing Airtable credentials in browser code.
+The public RSVP form sends validated submissions directly to the Netlify Function at `/.netlify/functions/rsvp`. The function stores each response in the private Airtable base instead of exposing Airtable credentials in browser code.
 
 ## Airtable resources
 
@@ -24,7 +24,7 @@ The variable must be available to Functions. Redeploy after adding it.
 
 ## Local RSVP testing
 
-Run the site through Netlify Dev when testing a real RSVP locally so the Next.js frontend and `/api/rsvp` function share one origin. Running `bun run dev` by itself only starts Next.js and cannot serve Netlify Functions; the form will now show an error in that situation instead of pretending the response was saved.
+Run the site through Netlify Dev when testing a real RSVP locally so the Next.js frontend and `/.netlify/functions/rsvp` function share one origin. Running `bun run dev` by itself only starts Next.js and cannot serve Netlify Functions; the form will now show an error in that situation instead of pretending the response was saved.
 
 Successful responses are stored only after Airtable confirms the write. Re-submitting the same name and phone number updates the existing response instead of creating a duplicate.
 

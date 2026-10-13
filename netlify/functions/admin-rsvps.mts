@@ -1,4 +1,3 @@
-import type { Config } from "@netlify/functions";
 import Airtable from "airtable";
 import { OAuth2Client } from "google-auth-library";
 
@@ -119,7 +118,3 @@ const handler = async (request: Request) => {
 };
 
 export default handler;
-
-export const config: Config = {
-  path: "/api/admin/rsvps",
-};

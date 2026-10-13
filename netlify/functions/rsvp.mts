@@ -1,4 +1,3 @@
-import type { Config } from "@netlify/functions";
 import Airtable from "airtable";
 
 const BASE_ID = "appRN9fznyqtKQJjY";
@@ -96,7 +95,3 @@ const handler = async (request: Request) => {
 };
 
 export default handler;
-
-export const config: Config = {
-  path: "/api/rsvp",
-};
