@@ -22,6 +22,12 @@ AIRTABLE_PERSONAL_ACCESS_TOKEN=pat_...
 
 The variable must be available to Functions. Redeploy after adding it.
 
+## Local RSVP testing
+
+Run the site through Netlify Dev when testing a real RSVP locally so the Next.js frontend and `/api/rsvp` function share one origin. Running `bun run dev` by itself only starts Next.js and cannot serve Netlify Functions; the form will now show an error in that situation instead of pretending the response was saved.
+
+Successful responses are stored only after Airtable confirms the write. Re-submitting the same name and phone number updates the existing response instead of creating a duplicate.
+
 ## Private admin panel
 
 The guest ledger is available at `/admin`. Google verifies the signed-in account, and the Netlify Function checks the verified email against `ADMIN_EMAILS` before returning or changing any RSVP data.

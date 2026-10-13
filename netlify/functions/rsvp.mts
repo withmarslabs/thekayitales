@@ -23,6 +23,14 @@ function json(body: Record<string, unknown>, status = 200) {
   });
 }
 
+function normalizePhone(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+function normalizeName(value: string) {
+  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("en");
+}
+
 const handler = async (request: Request) => {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
@@ -59,18 +67,28 @@ const handler = async (request: Request) => {
 
   try {
     const base = new Airtable({ apiKey: token }).base(BASE_ID);
-    const records = await base(TABLE_ID).create([
-      {
-        fields: {
-          "Guest Name": fullName,
-          "Phone Number": phone,
-          "Number of Guests in Party": guestCount,
-          "RSVP Status": attendance === "Attending" ? "Accepted" : "Declined",
-        },
-      },
-    ], { typecast: false });
+    const table = base(TABLE_ID);
+    const fields = {
+      "Guest Name": fullName,
+      "Phone Number": phone,
+      "Number of Guests in Party": guestCount,
+      "RSVP Status": attendance === "Attending" ? "Accepted" : "Declined",
+    };
+    const existingRecords = await table.select({
+      fields: ["Guest Name", "Phone Number"],
+      maxRecords: 500,
+    }).all();
+    const normalizedPhone = normalizePhone(phone);
+    const normalizedName = normalizeName(fullName);
+    const existingRecord = existingRecords.find((record) => (
+      normalizePhone(String(record.get("Phone Number") ?? "")) === normalizedPhone
+      && normalizeName(String(record.get("Guest Name") ?? "")) === normalizedName
+    ));
+    const record = existingRecord
+      ? await table.update(existingRecord.id, fields, { typecast: false })
+      : await table.create(fields, { typecast: false });
 
-    return json({ ok: true, submissionId: records[0]?.id });
+    return json({ ok: true, submissionId: record.id, saved: existingRecord ? "updated" : "created" });
   } catch (error) {
     console.error("Airtable RSVP submission failed", error instanceof Error ? error.message : "Unknown error");
     return json({ error: "We could not save your response. Please try again." }, 502);

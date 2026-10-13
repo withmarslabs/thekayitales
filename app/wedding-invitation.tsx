@@ -104,17 +104,17 @@ export function WeddingInvitation() {
     const payload = Object.fromEntries(Array.from(formData.entries(), ([key, value]) => [key, String(value)]));
 
     try {
-      const isLocalPreview = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-      if (!isLocalPreview) {
-        const response = await fetch("/api/rsvp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!response.ok) {
-          const result = await response.json().catch(() => null) as { error?: string } | null;
-          throw new Error(result?.error ?? "Submission failed");
-        }
+      const response = await fetch("/api/rsvp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => null) as { error?: string } | null;
+        const fallback = response.status === 404
+          ? "The RSVP service is still being deployed. Please try again shortly."
+          : "We could not save your response. Please try again.";
+        throw new Error(result?.error ?? fallback);
       }
       window.localStorage.setItem(RSVP_STORAGE_KEY, "true");
       setRsvpComplete(true);
