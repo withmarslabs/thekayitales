@@ -7,3 +7,6 @@ out
 !.env.example
 .tmp
 /*.png
+
+# Local Netlify folder
+.netlify

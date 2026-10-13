@@ -14,13 +14,33 @@ The admin view uses Airtable authentication, including Google sign-in when it is
 
 ## Netlify environment variable
 
-Create an Airtable personal access token with `data.records:write` access scoped only to this base. In Netlify, add it under **Project configuration → Environment variables**:
+Create an Airtable personal access token with `data.records:read` and `data.records:write` access scoped only to this base. In Netlify, add it under **Project configuration → Environment variables**:
 
 ```text
 AIRTABLE_PERSONAL_ACCESS_TOKEN=pat_...
 ```
 
 The variable must be available to Functions. Redeploy after adding it.
+
+## Private admin panel
+
+The guest ledger is available at `/admin`. Google verifies the signed-in account, and the Netlify Function checks the verified email against `ADMIN_EMAILS` before returning or changing any RSVP data.
+
+Add these variables in Netlify for all deploy contexts:
+
+```text
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+ADMIN_EMAILS=marscompanyltd2025@gmail.com
+```
+
+In Google Cloud Console, add these authorized JavaScript origins to the OAuth Web client:
+
+```text
+http://localhost:3000
+https://kayitare-maranatha.netlify.app
+```
+
+The Airtable token never enters the browser. Admins can search and filter responses, export the visible list, and update RSVP status and private notes.
 
 ## Email notification automation
 
