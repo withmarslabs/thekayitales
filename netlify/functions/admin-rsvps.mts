@@ -6,6 +6,13 @@ const TABLE_ID = "tblteSLT5C4H2m8wl";
 const DEFAULT_ADMIN_EMAIL = "marscompanyltd2025@gmail.com";
 const VALID_STATUSES = new Set(["Accepted", "Declined", "Pending"]);
 
+function normalizeStatus(value: unknown) {
+  const status = String(value ?? "").trim().toLowerCase();
+  if (["accepted", "attending", "yes", "confirmed"].includes(status)) return "Accepted";
+  if (["declined", "not attending", "no", "unable to attend"].includes(status)) return "Declined";
+  return "Pending";
+}
+
 type UpdatePayload = {
   id?: unknown;
   status?: unknown;
@@ -104,7 +111,7 @@ const handler = async (request: Request) => {
         name: String(record.get("Guest Name") ?? ""),
         phone: String(record.get("Phone Number") ?? ""),
         guestCount: Number(record.get("Number of Guests in Party") ?? 0),
-        status: String(record.get("RSVP Status") ?? "Pending"),
+        status: normalizeStatus(record.get("RSVP Status")),
         submittedAt: String(record.get("RSVP Submission Time") ?? ""),
         notificationSent: Boolean(record.get("Notification Sent")),
         notes: String(record.get("Notes") ?? ""),
