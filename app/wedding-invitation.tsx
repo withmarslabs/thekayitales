@@ -1,13 +1,14 @@
 "use client";
 
-import { CalendarBlank, Church, ForkKnife, HeartStraight, MapPin, MusicNotes, Phone, Wine } from "@phosphor-icons/react";
+import { ArrowRight, CalendarBlank, Check, Church, ForkKnife, HeartStraight, MapPin, MusicNotes, Phone, UsersThree, Wine, X } from "@phosphor-icons/react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 
 const HeroScene = dynamic(() => import("./hero-scene").then((module) => module.HeroScene), { ssr: false });
 const PHOTOS = Array.from({ length: 6 }, (_, index) => `/images/photo-${index + 1}.webp`);
 const TARGET_DATE = new Date("2027-01-30T11:00:00+02:00").getTime();
+const RSVP_STORAGE_KEY = "kayitare-maranatha-rsvp-complete";
 const EVENTS = [
   { time: "11:00", label: "Introduction & Dowry Giving", kinyarwanda: "Gusaba no Gukwa", venue: "Makita Tente Design · Kimironko", icon: HeartStraight },
   { time: "15:00", label: "Religious Ceremony", kinyarwanda: "Gusezerana Imbere y'Imana", venue: "Citylight Foursquare Church · Kigali", icon: Church },
@@ -26,7 +27,12 @@ function getCountdown() {
 
 export function WeddingInvitation() {
   const [countdown, setCountdown] = useState(getCountdown);
-  const [loaderVisible, setLoaderVisible] = useState(true);
+  const [rsvpReady, setRsvpReady] = useState(false);
+  const [rsvpComplete, setRsvpComplete] = useState(false);
+  const [attendance, setAttendance] = useState<"yes" | "no">("yes");
+  const [rsvpSubmitting, setRsvpSubmitting] = useState(false);
+  const [rsvpError, setRsvpError] = useState("");
+  const [loaderVisible, setLoaderVisible] = useState(false);
   const [loaderLeaving, setLoaderLeaving] = useState(false);
   const [loaderOpened, setLoaderOpened] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -35,19 +41,28 @@ export function WeddingInvitation() {
   const shiftLightbox = useCallback((direction: number) => setLightboxIndex((current) => current === null ? null : (current + direction + PHOTOS.length) % PHOTOS.length), []);
 
   useEffect(() => {
+    const alreadyRegistered = window.localStorage.getItem(RSVP_STORAGE_KEY) === "true";
+    const readyTimer = window.setTimeout(() => {
+      setRsvpComplete(alreadyRegistered);
+      setRsvpReady(true);
+    }, 0);
+    return () => window.clearTimeout(readyTimer);
+  }, []);
+  useEffect(() => {
+    if (!loaderVisible) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       const reducedMotionTimer = window.setTimeout(() => setLoaderVisible(false), 0);
       return () => window.clearTimeout(reducedMotionTimer);
     }
     const automaticOpenTimer = window.setTimeout(() => setLoaderOpened(true), 2_600);
-    return () => window.clearTimeout(automaticOpenTimer);
-  }, []);
-  useEffect(() => {
-    if (!loaderOpened) return;
-    const leaveTimer = window.setTimeout(() => setLoaderLeaving(true), 1_850);
-    const hideTimer = window.setTimeout(() => setLoaderVisible(false), 2_450);
-    return () => { window.clearTimeout(leaveTimer); window.clearTimeout(hideTimer); };
-  }, [loaderOpened]);
+    const leaveTimer = window.setTimeout(() => setLoaderLeaving(true), 4_450);
+    const hideTimer = window.setTimeout(() => setLoaderVisible(false), 5_100);
+    return () => {
+      window.clearTimeout(automaticOpenTimer);
+      window.clearTimeout(leaveTimer);
+      window.clearTimeout(hideTimer);
+    };
+  }, [loaderVisible]);
   useEffect(() => { const tick = () => setCountdown(getCountdown()); tick(); const timer = window.setInterval(tick, 1_000); return () => window.clearInterval(timer); }, []);
   useEffect(() => { const onScroll = () => setScrolled(window.scrollY > 60); onScroll(); window.addEventListener("scroll", onScroll, { passive: true }); return () => window.removeEventListener("scroll", onScroll); }, []);
   useEffect(() => {
@@ -70,15 +85,78 @@ export function WeddingInvitation() {
     };
   }, []);
   useEffect(() => {
+    document.body.style.overflow = !rsvpComplete || loaderVisible || lightboxIndex !== null ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [lightboxIndex, loaderVisible, rsvpComplete]);
+  useEffect(() => {
     if (lightboxIndex === null) return;
-    document.body.style.overflow = "hidden";
     const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") setLightboxIndex(null); if (event.key === "ArrowLeft") shiftLightbox(-1); if (event.key === "ArrowRight") shiftLightbox(1); };
     document.addEventListener("keydown", onKeyDown);
-    return () => { document.body.style.overflow = ""; document.removeEventListener("keydown", onKeyDown); };
+    return () => document.removeEventListener("keydown", onKeyDown);
   }, [lightboxIndex, shiftLightbox]);
+
+  const handleRsvpSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setRsvpSubmitting(true);
+    setRsvpError("");
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const body = new URLSearchParams();
+    formData.forEach((value, key) => body.append(key, String(value)));
+
+    try {
+      const isLocalPreview = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      if (!isLocalPreview) {
+        const response = await fetch("/", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: body.toString(),
+        });
+        if (!response.ok) throw new Error("Submission failed");
+      }
+      window.localStorage.setItem(RSVP_STORAGE_KEY, "true");
+      setRsvpComplete(true);
+      setLoaderOpened(false);
+      setLoaderLeaving(false);
+      setLoaderVisible(true);
+    } catch {
+      setRsvpError("We could not save your response. Check your connection and try again.");
+    } finally {
+      setRsvpSubmitting(false);
+    }
+  };
 
   return (
     <main>
+      {!rsvpComplete ? <section className={`rsvp-gate${rsvpReady ? " is-ready" : ""}`} aria-labelledby="rsvp-title">
+        <div className="rsvp-ornament" aria-hidden="true"><span /><i>K</i><b>&</b><i>M</i><span /></div>
+        <div className="rsvp-intro">
+          <p className="rsvp-kicker">A private invitation</p>
+          <h1 id="rsvp-title">You&apos;re invited<br /><em>to celebrate love.</em></h1>
+          <p className="rsvp-message">Kayitare and Maranatha joyfully invite you to share in the beginning of their forever.</p>
+          <div className="rsvp-date"><span>Saturday</span><strong>30</strong><span>January<br />2027 · Kigali</span></div>
+          <p className="rsvp-script">Together with our families</p>
+        </div>
+        <div className="rsvp-panel-wrap">
+          <form className="rsvp-panel" name="wedding-rsvp" method="POST" data-netlify="true" netlify-honeypot="company" onSubmit={handleRsvpSubmit}>
+            <input type="hidden" name="form-name" value="wedding-rsvp" />
+            <p className="rsvp-honeypot" aria-hidden="true"><label>Leave this field empty<input name="company" tabIndex={-1} autoComplete="off" /></label></p>
+            <header><span>Kindly respond</span><h2>Will you join us?</h2><p>Your response helps our families prepare a beautiful welcome for every guest.</p></header>
+            <div className="rsvp-fields">
+              <label className="rsvp-field"><span>Your full name</span><input name="fullName" type="text" autoComplete="name" placeholder="e.g. Aline Uwase" required /></label>
+              <label className="rsvp-field"><span>Phone number</span><input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+250 7XX XXX XXX" required /></label>
+              <fieldset className="attendance-choice"><legend>Will you attend?</legend><div>
+                <label className={attendance === "yes" ? "is-selected" : ""}><input type="radio" name="attendance" value="Attending" checked={attendance === "yes"} onChange={() => setAttendance("yes")} /><Check size={20} weight="bold" /><span><strong>Joyfully attending</strong><small>We&apos;ll be there</small></span></label>
+                <label className={attendance === "no" ? "is-selected" : ""}><input type="radio" name="attendance" value="Not attending" checked={attendance === "no"} onChange={() => setAttendance("no")} /><X size={20} weight="bold" /><span><strong>Unable to attend</strong><small>With love from afar</small></span></label>
+              </div></fieldset>
+              {attendance === "yes" ? <label className="rsvp-field guest-count"><span><UsersThree size={17} weight="thin" /> Total guests attending</span><select name="guestCount" defaultValue="1"><option value="1">Just me · 1 person</option><option value="2">2 people</option><option value="3">3 people</option><option value="4">4 people</option><option value="5">5 people</option><option value="6">6 people</option><option value="7">7 people</option><option value="8">8 people</option></select></label> : <input type="hidden" name="guestCount" value="0" />}
+            </div>
+            {rsvpError ? <p className="rsvp-error" role="alert">{rsvpError}</p> : null}
+            <button className="rsvp-submit" type="submit" disabled={rsvpSubmitting}><span>{rsvpSubmitting ? "Saving your response…" : attendance === "yes" ? "Confirm attendance" : "Send our regrets"}</span><ArrowRight size={19} weight="thin" /></button>
+            <p className="rsvp-privacy">Your details are shared only with the wedding families.</p>
+          </form>
+        </div>
+      </section> : null}
       {loaderVisible ? <div className={`wedding-loader${loaderOpened ? " is-open" : ""}${loaderLeaving ? " is-leaving" : ""}`} role="status" aria-live="polite" aria-label="Opening Kayitare and Maranatha's wedding invitation">
         <div className="loader-scene" aria-hidden="true"><div className="stage-light" /><div className="presentation-box"><div className="box-base"><div className="box-card"><span>Together with their families</span><h2>Kayitare <i>&</i> Maranatha</h2><p>Saturday · 30 January · 2027</p><small>Kigali, Rwanda</small></div></div><div className="box-lid"><span>K<i>/</i>M</span><small>A celebration of love</small></div></div></div>
         <div className="loader-curtain left" aria-hidden="true" /><div className="loader-curtain right" aria-hidden="true" />
@@ -104,7 +182,7 @@ export function WeddingInvitation() {
       <section className="invitation" id="story">
         <p className="side-label">Kayitare & Maranatha</p>
         <div className="invitation-copy" data-reveal><p className="eyebrow dark">A love ordained</p><h2>What God<br />Has Joined<br /><em>Together</em></h2><blockquote>“So they are no longer two, but one flesh. Therefore what God has joined together, let no one separate.”</blockquote><p className="scripture">Matthew 19:6</p></div>
-        <div className="invitation-collage" data-reveal><div className="collage-main"><Image src="/images/photo-3.webp" alt="Kayitare and Maranatha smiling together" fill quality={90} sizes="(max-width: 800px) 75vw, 32vw" /></div><div className="collage-small"><Image src="/images/photo-2.webp" alt="A joyful moment between Kayitare and Maranatha" fill quality={90} sizes="220px" /></div><Image className="botanical botanical-invitation" src="/images/botanical-sprig.webp" alt="" width={520} height={780} quality={90} /><p className="collage-note">Faith<br />People<br />Purpose<br />Forever</p></div>
+        <div className="invitation-collage" data-reveal><div className="collage-main"><Image src="/images/photo-3.webp" alt="Kayitare and Maranatha smiling together" fill quality={90} sizes="(max-width: 800px) 75vw, 32vw" /></div><div className="collage-small"><Image src="/images/photo-2.webp" alt="A joyful moment between Kayitare and Maranatha" fill quality={90} sizes="220px" /></div><p className="collage-note">Faith<br />People<br />Purpose<br />Forever</p></div>
         <p className="script-note">A beautiful beginning</p>
       </section>
 
