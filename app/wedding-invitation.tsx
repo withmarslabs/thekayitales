@@ -162,7 +162,7 @@ export function WeddingInvitation() {
         <div className="rsvp-intro">
           <p className="rsvp-kicker">{additionalRsvp ? "Welcome another guest" : "A private invitation"}</p>
           <h1 id="rsvp-title">{additionalRsvp ? <>Reserve<br /><em>another seat.</em></> : <>You&apos;re invited<br /><em>to celebrate love.</em></>}</h1>
-          <p className="rsvp-message">{additionalRsvp ? "Enter the guest’s details below and we’ll add their response to the family’s list." : "Kayitare and Maranatha joyfully invite you to share in the beginning of their forever."}</p>
+          <p className="rsvp-message">{additionalRsvp ? "Enter the guest’s details below and we’ll add their response to the family’s list." : "Kayitare and Maranatha joyfully invite you to the beginning of their forever."}</p>
           <div className="rsvp-date"><span>Saturday</span><strong>30</strong><span>January<br />2027 · Kigali</span></div>
           <p className="rsvp-script">Together with our families</p>
         </div>
@@ -170,7 +170,7 @@ export function WeddingInvitation() {
           <form className="rsvp-panel" name="wedding-rsvp" method="POST" data-netlify="true" netlify-honeypot="company" onSubmit={handleRsvpSubmit}>
             <input type="hidden" name="form-name" value="wedding-rsvp" />
             <p className="rsvp-honeypot" aria-hidden="true"><label>Leave this field empty<input name="company" tabIndex={-1} autoComplete="off" /></label></p>
-            <header><span>{additionalRsvp ? "New guest response" : "Kindly respond"}</span><h2>{additionalRsvp ? "Who shall we welcome?" : "Will you join us?"}</h2><p>{additionalRsvp ? "Use the new guest’s name and phone number so their reservation remains easy to manage." : "Your response helps our families prepare a beautiful welcome for every guest."}</p></header>
+            <header><span>{additionalRsvp ? "New guest response" : "Kindly respond"}</span><h2>{additionalRsvp ? "Who shall we welcome?" : "Would you like to join us?"}</h2><p>{additionalRsvp ? "Use the new guest’s name and phone number so their reservation remains easy to manage." : "Your response helps our families prepare a beautiful welcome for every guest."}</p></header>
             <div className="rsvp-fields">
               <label className="rsvp-field"><span>Your full name</span><input name="fullName" type="text" autoComplete="name" placeholder="e.g. Aline Uwase" required /></label>
               <label className="rsvp-field"><span>Phone number</span><input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+250 7XX XXX XXX" required /></label>
