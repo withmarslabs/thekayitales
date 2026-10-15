@@ -1,45 +1,51 @@
-# Design QA — navigation and language sharing
+# Design QA — header reservation action and language position
 
 ## Comparison input
 
-- Source visual truth: `/var/folders/fm/gnkjxp6s5v3dx6cx18wvplbc0000gp/T/codex-clipboard-229caa8e-1973-481d-a58a-ae8af679ab70.png`
-- Browser-rendered implementation: `/private/tmp/kayita-hero-navigation-match.png`
-- Combined side-by-side evidence: `/private/tmp/kayita-navigation-comparison.png`
-- RSVP gate evidence: `/private/tmp/kayita-rsvp-language-desktop.png`
-- Mobile evidence: `/private/tmp/kayita-hero-navigation-mobile.png`
-- Desktop comparison viewport: 1888 × 1976 CSS px at device scale factor 1
-- Source pixels: 1888 × 1976; implementation pixels: 1888 × 1976; no density normalization required
-- Mobile viewport: 390 × 844 CSS px at device scale factor 1
-- State: RSVP completed for hero captures; English for the matched desktop comparison, Luganda for mobile URL/state verification, and French for the RSVP-gate verification
+- Source visual truth: `/var/folders/fm/gnkjxp6s5v3dx6cx18wvplbc0000gp/T/codex-clipboard-6968a4d3-9ba9-44f3-ba48-a17df8d46dad.png`
+- Browser-rendered implementation: `/private/tmp/kayita-header-cta-match.png`
+- Combined side-by-side evidence: `/private/tmp/kayita-header-cta-comparison.png`
+- Mobile evidence: `/private/tmp/kayita-header-cta-mobile.png`
+- Source pixels: 2698 × 1976
+- Implementation pixels and desktop CSS viewport: 2698 × 1976 at device scale factor 1; no density normalization required
+- Mobile CSS viewport: 390 × 844 at device scale factor 1
+- State: RSVP completed, French desktop invitation at the top of the page and Luganda mobile invitation after the hero entrance animation
 
 ## Full-view comparison
 
-- The rebuilt header keeps the original editorial composition while separating the monogram, four navigation links, and closing vow into three balanced regions.
-- The former header language select is removed, eliminating the crowded overlap visible in the source capture.
-- The compact language dock sits at the bottom-right on both the invitation gate and the main invitation without horizontal overflow.
-- Hero image crop, central names, date/location line, side rails, forest palette, serif typography, and gold accents remain consistent with the source.
+- The requested information hierarchy is now present: the translated reservation action occupies the header’s right region where the decorative vow previously appeared.
+- The language dock has moved from bottom-right to bottom-left while retaining its forest, gold, and ivory visual language.
+- The unscrolled header has no visible bottom rule. After scrolling 220 px, the compact header appears at approximately 72 px tall with the subtle gold rule restored.
+- The existing hero photography, botanical treatment, typography, translated copy, and navigation remain unchanged outside the requested control placement.
 
 ## Focused comparison
 
-- Navigation: a restrained transparent-to-forest header, fine gold dividers, consistent letter spacing, clearer focus/hover treatment, and a compact scrolled state improve legibility without changing the invitation’s art direction.
-- Language control: EN, RW, LG, and FR are direct buttons with a visible active state. The selected language updates both the document language and `?lang=` in the URL.
-- RSVP gate: the selector is no longer competing with the centered K & M ornament at the top; it remains reachable at the bottom-right.
-- Mobile: the top bar reduces to monogram plus menu toggle; the menu opens correctly, fixed actions do not overlap, and the page has no horizontal overflow.
-- A separate focused crop was unnecessary because the navigation and language dock are clearly readable in the full-size equal-viewport comparison and mobile capture.
+- Desktop header: the reservation action is visually distinct but restrained, uses the existing Phosphor guest and arrow icons, and preserves the centered navigation.
+- Mobile header: the reservation action collapses to a 42 × 42 px icon button with the full translated accessible name, next to the menu toggle.
+- Mobile language dock: EN, RW, LG, and FR remain directly selectable at bottom-left without horizontal overflow.
+- A separate crop was unnecessary because the header and language dock are clearly readable in the full-size desktop comparison and mobile capture.
+
+## Required fidelity surfaces
+
+- Typography: existing Cormorant/Jost hierarchy is preserved; CTA label uses the navigation’s small uppercase tracking and avoids wrapping.
+- Spacing and layout: desktop retains the three-column header balance; mobile fits monogram, reservation action, and menu within 390 px.
+- Colors and tokens: CTA and dock reuse the existing forest, gold, ivory, and translucent border tokens.
+- Image quality: no image assets or crops were changed.
+- Copy: the reservation action continues to use the translated `reserveAnother` copy in all four languages.
 
 ## Interaction and runtime checks
 
-- `?lang=rw` loaded Kinyarwanda and `?lang=fr` loaded French directly, taking precedence over saved browser preference.
-- Selecting LG changed the live URL to `?lang=lg`, updated `<html lang="lg">`, and preserved the invitation route without reload.
-- Mobile navigation opened with the correct translated links and `aria-expanded="true"`.
-- Desktop and mobile both reported no horizontal overflow.
+- Desktop language dock computed at 38 px from the left; mobile computed at 12 px from the left.
+- The initial header border computed transparent; the scrolled border computed as translucent gold.
+- The mobile reservation action opened the additional RSVP form successfully.
+- Desktop and mobile reported no horizontal overflow.
 - No browser console errors or page errors were observed.
 - `bun run lint` passed.
 - `bun run build` passed under Next.js 16.4.0; `/`, `/admin`, and `/_not-found` were statically generated.
 
 ## Comparison history
 
-- First implementation pass: no P0, P1, or P2 visual issues were found. The first same-viewport capture occurred during the existing hero entrance animation; it was recaptured after the animation completed before judging fidelity.
+- First implementation pass: no P0, P1, or P2 issues were found in the requested control placement, scrolling state, or responsive behavior.
 
 ## Findings
 
@@ -49,6 +55,6 @@
 
 ## Follow-up polish
 
-- P3: native `<select>` controls elsewhere in the RSVP form remain browser-styled by design and were outside this navigation/language scope.
+- P3: none within this scoped refinement.
 
 final result: passed

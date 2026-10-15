@@ -217,7 +217,6 @@ export function WeddingInvitation() {
           </form>
         </div>
       </section> : null}
-      {rsvpComplete && !loaderVisible ? <button className="reserve-another" type="button" onClick={openAdditionalRsvp}><UsersThree size={19} weight="thin" /><span>{t("reserveAnother")}</span><ArrowRight size={16} weight="thin" /></button> : null}
       {!loaderVisible ? <div className="language-dock" role="group" aria-label={t("language")}>
         <span>{t("language")}</span>
         <div>{LANGUAGE_DOCK_ORDER.map((code) => <button type="button" key={code} className={language === code ? "is-active" : ""} aria-pressed={language === code} onClick={() => changeLanguage(code)}>{LANGUAGE_LABELS[code]}</button>)}</div>
@@ -231,9 +230,9 @@ export function WeddingInvitation() {
       </div> : null}
       <nav className={scrolled ? "site-nav is-scrolled" : "site-nav"}>
         <a className="monogram" href="#home" aria-label={t("homeLabel")}><span>K</span><i /><span>M</span></a>
-        <button className="menu-toggle" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label={t("toggleNavigation")}><span /><span /></button>
         <div className={menuOpen ? "nav-links is-open" : "nav-links"}><a href="#story" onClick={() => setMenuOpen(false)}>{t("ourStory")}</a><a href="#details" onClick={() => setMenuOpen(false)}>{t("theDay")}</a><a href="#gallery" onClick={() => setMenuOpen(false)}>{t("gallery")}</a><a href="#contacts" onClick={() => setMenuOpen(false)}>{t("contact")}</a></div>
-        <p className="nav-vow">{lines("greaterStory")}</p>
+        {rsvpComplete && !loaderVisible ? <button className="nav-reserve" type="button" onClick={openAdditionalRsvp} aria-label={t("reserveAnother")}><UsersThree size={18} weight="thin" /><span>{t("reserveAnother")}</span><ArrowRight size={15} weight="thin" /></button> : <span />}
+        <button className="menu-toggle" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label={t("toggleNavigation")}><span /><span /></button>
       </nav>
 
       <header className="hero" id="home">
