@@ -1,17 +1,16 @@
 "use client";
 
-import { ArrowRight, CalendarBlank, Check, Church, ForkKnife, HeartStraight, MapPin, MusicNotes, Phone, UsersThree, Wine, X } from "@phosphor-icons/react";
+import { ArrowRight, CalendarBlank, Check, Church, ForkKnife, HeartStraight, MapPin, MusicNotes, Phone, ShareNetwork, UsersThree, Wine, X } from "@phosphor-icons/react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { LANGUAGES, TRANSLATIONS, translate, type Language } from "./translations";
+import { LANGUAGES, LANGUAGE_NAMES, TRANSLATIONS, translate, type Language } from "./translations";
 
 const HeroScene = dynamic(() => import("./hero-scene").then((module) => module.HeroScene), { ssr: false });
 const PHOTOS = Array.from({ length: 6 }, (_, index) => `/images/photo-${index + 1}.webp`);
 const TARGET_DATE = new Date("2027-01-30T11:00:00+02:00").getTime();
 const RSVP_STORAGE_KEY = "kayitare-maranatha-rsvp-complete";
 const LANGUAGE_STORAGE_KEY = "kayitare-maranatha-language";
-const LANGUAGE_LABELS: Record<Language, string> = { en: "EN", rw: "RW", lg: "LG", fr: "FR" };
 const LANGUAGE_DOCK_ORDER: Language[] = ["en", "rw", "lg", "fr"];
 const EVENTS = [
   { time: "11:00", labelKey: "event1", localKey: "event1Local", venue: "Makita Tente Design · Kimironko", icon: HeartStraight },
@@ -40,6 +39,7 @@ export function WeddingInvitation() {
   const [rsvpComplete, setRsvpComplete] = useState(false);
   const [additionalRsvp, setAdditionalRsvp] = useState(false);
   const [rsvpNotice, setRsvpNotice] = useState("");
+  const [shareNotice, setShareNotice] = useState("");
   const [attendance, setAttendance] = useState<"yes" | "no">("yes");
   const [rsvpSubmitting, setRsvpSubmitting] = useState(false);
   const [rsvpError, setRsvpError] = useState("");
@@ -57,6 +57,24 @@ export function WeddingInvitation() {
     url.searchParams.set("lang", nextLanguage);
     window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
   }, []);
+
+  const shareInvitation = useCallback(async () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", language);
+    const localizedUrl = url.toString();
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Kayitare & Maranatha", url: localizedUrl });
+      } else {
+        await navigator.clipboard.writeText(localizedUrl);
+        setShareNotice(t("linkCopied"));
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      await navigator.clipboard.writeText(localizedUrl);
+      setShareNotice(t("linkCopied"));
+    }
+  }, [language, t]);
 
   useEffect(() => {
     const queryLanguage = new URLSearchParams(window.location.search).get("lang")?.toLowerCase();
@@ -86,6 +104,11 @@ export function WeddingInvitation() {
     const noticeTimer = window.setTimeout(() => setRsvpNotice(""), 4_500);
     return () => window.clearTimeout(noticeTimer);
   }, [rsvpNotice]);
+  useEffect(() => {
+    if (!shareNotice) return;
+    const noticeTimer = window.setTimeout(() => setShareNotice(""), 3_500);
+    return () => window.clearTimeout(noticeTimer);
+  }, [shareNotice]);
   useEffect(() => {
     if (!loaderVisible) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -217,9 +240,11 @@ export function WeddingInvitation() {
           </form>
         </div>
       </section> : null}
-      {!loaderVisible ? <div className="language-dock" role="group" aria-label={t("language")}>
+      {!loaderVisible ? <div className="language-dock">
         <span>{t("language")}</span>
-        <div>{LANGUAGE_DOCK_ORDER.map((code) => <button type="button" key={code} className={language === code ? "is-active" : ""} aria-pressed={language === code} onClick={() => changeLanguage(code)}>{LANGUAGE_LABELS[code]}</button>)}</div>
+        <select value={language} onChange={(event) => changeLanguage(event.target.value as Language)} aria-label={t("language")}>{LANGUAGE_DOCK_ORDER.map((code) => <option value={code} key={code}>{LANGUAGE_NAMES[code]}</option>)}</select>
+        <button className="share-language-link" type="button" onClick={shareInvitation} aria-label={t("shareInvitation")} title={t("shareInvitation")}><ShareNetwork size={18} weight="thin" /></button>
+        {shareNotice ? <em role="status">{shareNotice}</em> : null}
       </div> : null}
       {rsvpNotice ? <div className="rsvp-notice" role="status"><Check size={18} weight="bold" /><span>{rsvpNotice}</span></div> : null}
       {loaderVisible ? <div className={`wedding-loader${loaderOpened ? " is-open" : ""}${loaderLeaving ? " is-leaving" : ""}`} role="status" aria-live="polite" aria-label={t("openingInvitation")}>

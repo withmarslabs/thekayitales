@@ -1,30 +1,29 @@
-# Design QA — header reservation action and language position
+# Design QA — localized language sharing
 
 ## Comparison input
 
-- Source visual truth: `/var/folders/fm/gnkjxp6s5v3dx6cx18wvplbc0000gp/T/codex-clipboard-6968a4d3-9ba9-44f3-ba48-a17df8d46dad.png`
-- Browser-rendered implementation: `/private/tmp/kayita-header-cta-match.png`
-- Combined side-by-side evidence: `/private/tmp/kayita-header-cta-comparison.png`
-- Mobile evidence: `/private/tmp/kayita-header-cta-mobile.png`
-- Unscrolled-border evidence: `/private/tmp/kayita-no-unscrolled-border.png`
-- Source pixels: 2698 × 1976
-- Implementation pixels and desktop CSS viewport: 2698 × 1976 at device scale factor 1; no density normalization required
+- Source visual truth: `/var/folders/fm/gnkjxp6s5v3dx6cx18wvplbc0000gp/T/TemporaryItems/NSIRD_screencaptureui_tyhDYd/Screenshot 2026-10-16 at 1.39.19 AM.png`
+- Browser-rendered implementation: `/private/tmp/kayita-localized-share-desktop.png`
+- Mobile evidence: `/private/tmp/kayita-localized-share-mobile.png`
+- Focused side-by-side evidence: `/private/tmp/kayita-localized-share-comparison.png`
+- Source pixels: 592 × 184
+- Implementation desktop CSS viewport: 1440 × 1000 at device scale factor 1
 - Mobile CSS viewport: 390 × 844 at device scale factor 1
-- State: RSVP completed, French desktop invitation at the top of the page and Luganda mobile invitation after the hero entrance animation
+- State: RSVP completed; French query-load verification followed by Luganda query-change and share-link verification
 
 ## Full-view comparison
 
-- The requested information hierarchy is now present: the translated reservation action occupies the header’s right region where the decorative vow previously appeared.
-- The language dock has moved from bottom-right to bottom-left while retaining its forest, gold, and ivory visual language.
-- The unscrolled header has no border declaration or reserved border width. After scrolling 220 px, the compact header appears at approximately 72 px tall with the subtle gold rule restored.
-- The existing hero photography, botanical treatment, typography, translated copy, and navigation remain unchanged outside the requested control placement.
+- The language dock now shows only the active language’s full name while keeping English, Kinyarwanda, Luganda, and French available in the dropdown.
+- A dedicated share action sits beside the selector and uses the current localized URL.
+- The dock preserves the screenshot’s forest-and-gold treatment while becoming substantially narrower and clearer.
+- Existing invitation content, navigation, hero imagery, and reservation behavior remain unchanged.
 
 ## Focused comparison
 
-- Desktop header: the reservation action is visually distinct but restrained, uses the existing Phosphor guest and arrow icons, and preserves the centered navigation.
-- Mobile header: the reservation action collapses to a 42 × 42 px icon button with the full translated accessible name, next to the menu toggle.
-- Mobile language dock: EN, RW, LG, and FR remain directly selectable at bottom-left without horizontal overflow.
-- A separate crop was unnecessary because the header and language dock are clearly readable in the full-size desktop comparison and mobile capture.
+- Query state: loading `?lang=fr` displays “French” as the single selected value, rather than four abbreviations at once.
+- Change state: selecting Luganda changes the query to `?lang=lg` and updates the document language and visible copy without reloading.
+- Share state: the fallback copy path produced the exact current localized URL and displayed a translated confirmation.
+- Mobile: the dock is 182 px wide at 390 px viewport width with no horizontal overflow.
 
 ## Required fidelity surfaces
 
@@ -32,21 +31,21 @@
 - Spacing and layout: desktop retains the three-column header balance; mobile fits monogram, reservation action, and menu within 390 px.
 - Colors and tokens: CTA and dock reuse the existing forest, gold, ivory, and translucent border tokens.
 - Image quality: no image assets or crops were changed.
-- Copy: the reservation action continues to use the translated `reserveAnother` copy in all four languages.
+- Copy: language names are explicit and complete; the share label and copy confirmation are translated in all four languages.
 
 ## Interaction and runtime checks
 
-- Desktop language dock computed at 38 px from the left; mobile computed at 12 px from the left.
-- At `scrollY: 0`, the header computed `border-bottom-style: none` and `border-bottom-width: 0px`; at `scrollY: 220`, it computed a solid 1 px translucent-gold border.
-- The mobile reservation action opened the additional RSVP form successfully.
-- Desktop and mobile reported no horizontal overflow.
+- `?lang=fr` loaded with “French” selected and exposed all four full language names in the dropdown.
+- Selecting Luganda updated the live URL to `?lang=lg`.
+- The share fallback produced `http://127.0.0.1:3000/?lang=lg`; production uses the same path/query contract on the live origin.
+- Desktop and mobile reported no horizontal overflow; mobile dock width measured 182 px.
 - No browser console errors or page errors were observed.
 - `bun run lint` passed.
 - `bun run build` passed under Next.js 16.4.0; `/`, `/admin`, and `/_not-found` were statically generated.
 
 ## Comparison history
 
-- First implementation pass: no P0, P1, or P2 issues were found in the requested control placement, scrolling state, or responsive behavior.
+- First implementation pass: no P0, P1, or P2 issues were found in query handling, full-name presentation, localized sharing, or responsive behavior.
 
 ## Findings
 
