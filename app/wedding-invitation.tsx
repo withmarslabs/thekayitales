@@ -4,12 +4,15 @@ import { ArrowRight, CalendarBlank, Check, Church, ForkKnife, HeartStraight, Map
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { LANGUAGE_NAMES, TRANSLATIONS, translate, type Language } from "./translations";
+import { LANGUAGES, TRANSLATIONS, translate, type Language } from "./translations";
 
 const HeroScene = dynamic(() => import("./hero-scene").then((module) => module.HeroScene), { ssr: false });
 const PHOTOS = Array.from({ length: 6 }, (_, index) => `/images/photo-${index + 1}.webp`);
 const TARGET_DATE = new Date("2027-01-30T11:00:00+02:00").getTime();
 const RSVP_STORAGE_KEY = "kayitare-maranatha-rsvp-complete";
+const LANGUAGE_STORAGE_KEY = "kayitare-maranatha-language";
+const LANGUAGE_LABELS: Record<Language, string> = { en: "EN", rw: "RW", lg: "LG", fr: "FR" };
+const LANGUAGE_DOCK_ORDER: Language[] = ["en", "rw", "lg", "fr"];
 const EVENTS = [
   { time: "11:00", labelKey: "event1", localKey: "event1Local", venue: "Makita Tente Design · Kimironko", icon: HeartStraight },
   { time: "15:00", labelKey: "event2", localKey: "event2Local", venue: "Citylight Foursquare Church · Kigali", icon: Church },
@@ -48,17 +51,26 @@ export function WeddingInvitation() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const shiftLightbox = useCallback((direction: number) => setLightboxIndex((current) => current === null ? null : (current + direction + PHOTOS.length) % PHOTOS.length), []);
 
+  const changeLanguage = useCallback((nextLanguage: Language) => {
+    setLanguage(nextLanguage);
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", nextLanguage);
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  }, []);
+
   useEffect(() => {
-    const stored = window.localStorage.getItem("kayitare-maranatha-language");
+    const queryLanguage = new URLSearchParams(window.location.search).get("lang")?.toLowerCase();
+    const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
     const timer = window.setTimeout(() => {
-      if (stored === "en" || stored === "rw" || stored === "fr" || stored === "lg") setLanguage(stored);
+      if (queryLanguage && LANGUAGES.includes(queryLanguage as Language)) setLanguage(queryLanguage as Language);
+      else if (stored && LANGUAGES.includes(stored as Language)) setLanguage(stored as Language);
       setLanguageReady(true);
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
   useEffect(() => {
     if (!languageReady) return;
-    window.localStorage.setItem("kayitare-maranatha-language", language);
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
     document.documentElement.lang = language;
   }, [language, languageReady]);
   useEffect(() => {
@@ -176,7 +188,6 @@ export function WeddingInvitation() {
   return (
     <main>
       {!rsvpComplete ? <section className={`rsvp-gate${rsvpReady ? " is-ready" : ""}`} aria-labelledby="rsvp-title">
-        <label className="gate-language-picker"><span>{t("language")}</span><select value={language} onChange={(event) => setLanguage(event.target.value as Language)}>{Object.entries(LANGUAGE_NAMES).map(([code, name]) => <option value={code} key={code}>{name}</option>)}</select></label>
         {additionalRsvp ? <button className="rsvp-close" type="button" onClick={closeAdditionalRsvp} aria-label={t("returnInvitation")}><X size={21} weight="thin" /><span>{t("backInvitation")}</span></button> : null}
         <div className="rsvp-ornament" aria-hidden="true"><span /><i>K</i><b>&</b><i>M</i><span /></div>
         <div className="rsvp-intro">
@@ -207,6 +218,10 @@ export function WeddingInvitation() {
         </div>
       </section> : null}
       {rsvpComplete && !loaderVisible ? <button className="reserve-another" type="button" onClick={openAdditionalRsvp}><UsersThree size={19} weight="thin" /><span>{t("reserveAnother")}</span><ArrowRight size={16} weight="thin" /></button> : null}
+      {!loaderVisible ? <div className="language-dock" role="group" aria-label={t("language")}>
+        <span>{t("language")}</span>
+        <div>{LANGUAGE_DOCK_ORDER.map((code) => <button type="button" key={code} className={language === code ? "is-active" : ""} aria-pressed={language === code} onClick={() => changeLanguage(code)}>{LANGUAGE_LABELS[code]}</button>)}</div>
+      </div> : null}
       {rsvpNotice ? <div className="rsvp-notice" role="status"><Check size={18} weight="bold" /><span>{rsvpNotice}</span></div> : null}
       {loaderVisible ? <div className={`wedding-loader${loaderOpened ? " is-open" : ""}${loaderLeaving ? " is-leaving" : ""}`} role="status" aria-live="polite" aria-label={t("openingInvitation")}>
         <div className="loader-scene" aria-hidden="true"><div className="stage-light" /><div className="presentation-box"><div className="box-base"><div className="box-card"><span>{t("families")}</span><h2>Kayitare <i>&</i> Maranatha</h2><p>{t("weddingDate")}</p><small>{t("kigaliRwanda")}</small></div></div><div className="box-lid"><span>K<i>/</i>M</span><small>{t("celebrationLove")}</small></div></div></div>
@@ -217,7 +232,7 @@ export function WeddingInvitation() {
       <nav className={scrolled ? "site-nav is-scrolled" : "site-nav"}>
         <a className="monogram" href="#home" aria-label={t("homeLabel")}><span>K</span><i /><span>M</span></a>
         <button className="menu-toggle" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label={t("toggleNavigation")}><span /><span /></button>
-        <div className={menuOpen ? "nav-links is-open" : "nav-links"}><a href="#story" onClick={() => setMenuOpen(false)}>{t("ourStory")}</a><a href="#details" onClick={() => setMenuOpen(false)}>{t("theDay")}</a><a href="#gallery" onClick={() => setMenuOpen(false)}>{t("gallery")}</a><a href="#contacts" onClick={() => setMenuOpen(false)}>{t("contact")}</a><label className="language-picker"><span>{t("language")}</span><select value={language} onChange={(event) => setLanguage(event.target.value as Language)}>{Object.entries(LANGUAGE_NAMES).map(([code, name]) => <option value={code} key={code}>{name}</option>)}</select></label></div>
+        <div className={menuOpen ? "nav-links is-open" : "nav-links"}><a href="#story" onClick={() => setMenuOpen(false)}>{t("ourStory")}</a><a href="#details" onClick={() => setMenuOpen(false)}>{t("theDay")}</a><a href="#gallery" onClick={() => setMenuOpen(false)}>{t("gallery")}</a><a href="#contacts" onClick={() => setMenuOpen(false)}>{t("contact")}</a></div>
         <p className="nav-vow">{lines("greaterStory")}</p>
       </nav>
 
