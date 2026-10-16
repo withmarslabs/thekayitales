@@ -88,7 +88,7 @@ const en: Record<string, string> = {
   contactPhotoAlt: "Kayitare and Maranatha looking at each other",
   gratefulHearts: "With grateful hearts",
   celebrateWithUs: "Celebrate\nWith Us",
-  honorShare: "We would be honored to have you share this special day with us.",
+  honorShare: "We would be honored to have you join us on this special day.",
   familyContacts: "Family & day-of contacts",
   hereHelp: "We’re here to help",
   tapCall: "Tap any number to call",
